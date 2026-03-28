@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarSnipe — Never Miss a Deal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,200;0,300;0,400;0,500;0,600;1,200;1,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #090909;
+  --dark: #0f0f0f;
+  --dark2: #161616;
+  --white: #f5f4f0;
+  --off: #e8e6e0;
+  --brass: #c9a84c;
+  --brass2: #e2c06a;
+  --brass3: #8a6a28;
+  --muted-dark: #555;
+  --muted-light: #999;
+  --border-dark: rgba(255,255,255,0.08);
+  --border-light: rgba(0,0,0,0.1);
+  --green: #2d9e5a;
+  --yellow: #b8820a;
+  --red: #9e2d2d;
+  --display: 'Bebas Neue', sans-serif;
+  --body: 'Barlow', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--body);font-weight:300;overflow-x:hidden}
+
+/* ── CURSOR ── */
+.cursor{width:8px;height:8px;background:var(--brass);border-radius:50%;position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform 0.1s}
+.cursor-ring{width:32px;height:32px;border:1px solid rgba(201,168,76,0.5);border-radius:50%;position:fixed;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all 0.12s ease}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:300;
+  padding:0 60px;height:72px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background 0.5s,border-color 0.5s;
+  border-bottom:1px solid transparent;
+}
+nav.scrolled{background:rgba(9,9,9,0.92);backdrop-filter:blur(20px);border-color:var(--border-dark)}
+nav.light-nav{background:rgba(245,244,240,0.95);backdrop-filter:blur(20px);border-color:var(--border-light)}
+
+.logo-wrap{display:flex;align-items:center;gap:14px;text-decoration:none}
+.logo-icon{
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;flex-shrink:0;
+}
+.logo-text{font-family:var(--display);font-size:22px;letter-spacing:0.12em;color:var(--white);transition:color 0.3s}
+nav.light-nav .logo-text{color:var(--black)}
+nav.light-nav .logo-svg line,
+nav.light-nav .logo-svg path,
+nav.light-nav .logo-svg circle{stroke:#8a6a28}
+nav.light-nav .logo-svg circle{fill:#8a6a28}
+
+.nav-center{display:flex;gap:40px;position:absolute;left:50%;transform:translateX(-50%)}
+.nav-link{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.5);text-decoration:none;transition:color 0.2s}
+.nav-link:hover{color:var(--brass)}
+nav.light-nav .nav-link{color:rgba(0,0,0,0.5)}
+nav.light-nav .nav-link:hover{color:var(--brass3)}
+
+.nav-btn{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--black);background:var(--brass);border:none;
+  padding:12px 24px;cursor:pointer;transition:background 0.2s;
+}
+.nav-btn:hover{background:var(--brass2)}
+
+/* ── CINEMATIC HERO ── */
+.hero{
+  height:100vh;position:relative;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  overflow:hidden;
+}
+
+/* animated cinematic bg */
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 120% 80% at 60% 40%, #1a0f05 0%, transparent 60%),
+    radial-gradient(ellipse 80% 100% at 10% 80%, #0a1520 0%, transparent 50%),
+    #090909;
+  animation:bgPulse 8s ease-in-out infinite alternate;
+}
+@keyframes bgPulse{
+  0%{filter:brightness(1)}
+  100%{filter:brightness(1.15)}
+}
+
+/* moving light streaks */
+.streak{
+  position:absolute;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,0.4),transparent);
+  animation:streakMove 4s linear infinite;
+  opacity:0;
+}
+.streak:nth-child(1){width:40%;top:25%;animation-delay:0s;animation-duration:5s}
+.streak:nth-child(2){width:25%;top:55%;animation-delay:1.5s;animation-duration:4s}
+.streak:nth-child(3){width:60%;top:75%;animation-delay:3s;animation-duration:6s}
+@keyframes streakMove{
+  0%{left:-100%;opacity:0}
+  10%{opacity:1}
+  90%{opacity:1}
+  100%{left:200%;opacity:0}
+}
+
+/* floating particles */
+.particle{
+  position:absolute;border-radius:50%;
+  background:rgba(201,168,76,0.15);
+  animation:float 10s ease-in-out infinite;
+}
+.particle:nth-child(1){width:300px;height:300px;top:10%;left:70%;animation-duration:12s}
+.particle:nth-child(2){width:180px;height:180px;top:60%;left:20%;animation-duration:9s;animation-delay:2s}
+.particle:nth-child(3){width:80px;height:80px;top:40%;left:50%;animation-duration:7s;animation-delay:4s}
+@keyframes float{
+  0%,100%{transform:translateY(0) scale(1)}
+  50%{transform:translateY(-30px) scale(1.05)}
+}
+
+/* grid overlay */
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(201,168,76,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(201,168,76,0.03) 1px,transparent 1px);
+  background-size:80px 80px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);
+}
+
+.hero-content{
+  position:relative;z-index:2;
+  padding:0 60px 80px;
+}
+
+.hero-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--brass);margin-bottom:20px;
+  display:flex;align-items:center;gap:10px;
+  opacity:0;animation:fadeUp 1s 0.2s forwards;
+}
+.live-pip{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pip 2s infinite}
+@keyframes pip{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+
+.hero-h1{
+  font-family:var(--display);
+  font-size:clamp(80px,12vw,180px);
+  line-height:0.88;letter-spacing:0.04em;
+  margin-bottom:40px;
+  opacity:0;animation:fadeUp 1s 0.4s forwards;
+}
+.hero-h1 .l1{display:block;color:var(--white)}
+.hero-h1 .l2{
+  display:block;
+  background:linear-gradient(135deg,var(--brass),var(--brass2),var(--brass));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-h1 .l3{display:block;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,0.2)}
+
+.hero-bottom{
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;
+  border-top:1px solid var(--border-dark);padding-top:36px;
+  opacity:0;animation:fadeUp 1s 0.6s forwards;
+}
+.hero-desc{font-size:15px;line-height:1.9;color:rgba(255,255,255,0.5);max-width:400px}
+.hero-desc strong{color:var(--white);font-weight:400}
+
+.hero-form{display:flex;margin-bottom:14px}
+.h-input{
+  flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border-dark);border-right:none;
+  padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--white);
+  outline:none;transition:border-color 0.2s;letter-spacing:0.04em;
+}
+.h-input::placeholder{color:rgba(255,255,255,0.3)}
+.h-input:focus{border-color:rgba(201,168,76,0.5)}
+.h-zip{flex:0 0 80px;border-left:1px solid var(--border-dark);border-right:none}
+.h-btn{
+  background:var(--brass);border:none;padding:14px 24px;
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--black);cursor:pointer;transition:background 0.2s;white-space:nowrap;
+}
+.h-btn:hover{background:var(--brass2)}
+.h-meta{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;color:rgba(255,255,255,0.35);display:flex;gap:14px}
+.h-count{color:var(--brass)}
+.h-success{display:none;font-family:var(--mono);font-size:11px;color:var(--green);padding:14px 0;letter-spacing:0.08em}
+
+/* scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
+  color:rgba(255,255,255,0.3);z-index:2;
+  animation:scrollBounce 2s ease-in-out infinite;
+}
+.scroll-line{width:1px;height:40px;background:linear-gradient(var(--brass),transparent)}
+@keyframes scrollBounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+/* ── LIVE FEED (dark section) ── */
+.feed-section{background:var(--dark);padding:80px 60px;border-top:1px solid var(--border-dark)}
+.feed-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.feed-hl{font-family:var(--display);font-size:14px;letter-spacing:0.16em;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:10px}
+.feed-plats{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.2)}
+.feed-grid{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--border-dark)}
+.fc{padding:24px 20px;border-right:1px solid var(--border-dark);background:var(--dark);transition:background 0.2s;position:relative;overflow:hidden}
+.fc:last-child{border-right:none}
+.fc:hover{background:var(--dark2)}
+.fc.new-in{animation:fcIn 0.5s ease forwards}
+@keyframes fcIn{from{opacity:0;background:rgba(201,168,76,0.05)}to{opacity:1;background:var(--dark)}}
+.fc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.fc-src{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);line-height:1.5}
+.fc-score{font-family:var(--display);font-size:36px;line-height:1;letter-spacing:0.04em}
+.fc-score.hot{color:var(--green)}
+.fc-score.warm{color:var(--yellow)}
+.fc-score.cold{color:var(--red)}
+.fc-car{font-size:12px;font-weight:500;color:var(--white);margin-bottom:5px;line-height:1.35}
+.fc-price{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,0.3);margin-bottom:10px;letter-spacing:0.04em}
+.fc-badge{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;padding:3px 8px;border:1px solid}
+.fc-badge.hot{color:var(--green);border-color:rgba(45,158,90,0.4);background:rgba(45,158,90,0.08)}
+.fc-badge.warm{color:var(--yellow);border-color:rgba(184,130,10,0.4);background:rgba(184,130,10,0.08)}
+.fc-badge.cold{color:var(--red);border-color:rgba(158,45,45,0.4);background:rgba(158,45,45,0.08)}
+.fc-time{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,0.2);margin-top:10px}
+
+/* ── TICKER ── */
+.ticker-bar{background:var(--brass);overflow:hidden;padding:10px 0}
+.ticker-inner{display:flex;animation:tick 35s linear infinite;white-space:nowrap}
+.tick-item{font-family:var(--mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--black);padding:0 44px;flex-shrink:0;opacity:0.8}
+.tick-sep{opacity:0.4;margin-right:14px}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── STATS — LIGHT SECTION ── */
+.stats-section{background:var(--white);padding:100px 60px}
+.stats-inner{max-width:1360px;margin:0 auto}
+.section-tag-light{
+  font-family:var(--mono);font-size:9px;letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--brass3);margin-bottom:48px;display:flex;align-items:center;gap:14px;
+}
+.section-tag-light::after{content:'';flex:0 0 60px;height:1px;background:rgba(0,0,0,0.1)}
+.stats-hl{
+  font-family:var(--display);font-size:clamp(52px,7vw,96px);
+  letter-spacing:0.06em;line-height:0.9;color:var(--black);margin-bottom:64px;
+}
+.stats-hl span{color:var(--brass3)}
+
+/* animated moving boxes */
+.stats-boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--border-light)}
+.stat-box{
+  padding:56px 44px;border-right:1px solid var(--border-light);
+  background:var(--white);
+  transform:translateY(40px);opacity:0;transition:transform 0.8s ease,opacity 0.8s ease;
+}
+.stat-box.visible{transform:translateY(0);opacity:1}
+.stat-box:nth-child(2){transition-delay:0.15s}
+.stat-box:nth-child(3){transition-delay:0.3s}
+.stat-box:last-child{border-right:none}
+.stat-box:hover{background:var(--off)}
+.stat-num{
+  font-family:var(--display);font-size:88px;letter-spacing:0.04em;
+  line-height:1;color:var(--black);margin-bottom:12px;
+  transition:color 0.3s;
+}
+.stat-box:hover .stat-num{color:var(--brass3)}
+.stat-label{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#888;line-height:1.7}
+
+/* ── PAIN — DARK SECTION ── */
+.pain-section{background:var(--black);padding:100px 60px;border-top:1px solid var(--border-dark)}
+.pain-inner{max-width:1360px;margin:0 auto}
+.section-tag-dark{
+  font-family:var(--mono);font-size:9px;letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--brass);margin-bottom:48px;display:flex;align-items:center;gap:14px;
+}
+.section-tag-dark::after{content:'';flex:0 0 60px;height:1px;background:var(--border-dark)}
+.pain-hl{
+  font-family:var(--display);font-size:clamp(52px,7vw,96px);
+  letter-spacing:0.06em;line-height:0.9;color:var(--white);margin-bottom:64px;
+}
+.pain-hl span{color:var(--brass)}
+
+.pain-grid{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border-dark)}
+.pain-card{
+  padding:40px 34px;border-right:1px solid var(--border-dark);
+  transform:translateX(-20px);opacity:0;transition:transform 0.7s ease,opacity 0.7s ease,background 0.2s;
+}
+.pain-card.visible{transform:translateX(0);opacity:1}
+.pain-card:nth-child(2){transition-delay:0.15s}
+.pain-card:nth-child(3){transition-delay:0.3s}
+.pain-card:last-child{border-right:none}
+.pain-card:hover{background:var(--dark)}
+.pain-idx{font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:20px}
+.pain-title{font-family:var(--display);font-size:30px;letter-spacing:0.04em;color:var(--white);margin-bottom:14px;line-height:1.1}
+.pain-body{font-size:13px;line-height:1.85;color:rgba(255,255,255,0.4);margin-bottom:20px}
+.pain-quote{font-size:13px;line-height:1.7;color:rgba(255,255,255,0.3);border-left:1px solid var(--brass3);padding-left:14px;font-style:italic}
+
+/* ── HOW — LIGHT SECTION ── */
+.how-section{background:var(--white);padding:100px 60px;border-top:1px solid var(--border-light)}
+.how-inner{max-width:1360px;margin:0 auto}
+.how-hl{
+  font-family:var(--display);font-size:clamp(52px,7vw,96px);
+  letter-spacing:0.06em;line-height:0.9;color:var(--black);margin-bottom:64px;
+}
+.how-hl span{color:var(--brass3)}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border-light)}
+.step{
+  padding:40px 30px;border-right:1px solid var(--border-light);
+  border-top:3px solid transparent;transition:border-top-color 0.3s,background 0.2s;
+  transform:translateY(30px);opacity:0;
+}
+.step.visible{transform:translateY(0);opacity:1;transition:transform 0.7s ease,opacity 0.7s ease,border-top-color 0.3s,background 0.2s}
+.step:nth-child(2){transition-delay:0.1s}
+.step:nth-child(3){transition-delay:0.2s}
+.step:nth-child(4){transition-delay:0.3s}
+.step:last-child{border-right:none}
+.step:hover{border-top-color:var(--brass3);background:var(--off)}
+.step-n{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--brass3);margin-bottom:20px}
+.step-t{font-family:var(--display);font-size:24px;letter-spacing:0.04em;color:var(--black);margin-bottom:12px;line-height:1.1}
+.step-b{font-size:13px;line-height:1.85;color:#888}
+
+/* ── PLATFORMS — DARK ── */
+.plat-section{background:var(--black);padding:80px 60px;border-top:1px solid var(--border-dark)}
+.plat-inner{max-width:1360px;margin:0 auto}
+.plat-row{display:flex;border:1px solid var(--border-dark)}
+.plat{
+  flex:1;padding:28px 20px;text-align:center;
+  border-right:1px solid var(--border-dark);transition:background 0.2s;
+}
+.plat:last-child{border-right:none}
+.plat:hover{background:var(--dark)}
+.plat-name{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);transition:color 0.2s}
+.plat.live .plat-name{color:var(--white)}
+.plat:hover .plat-name{color:var(--brass)}
+.plat-status{display:block;font-family:var(--mono);font-size:9px;letter-spacing:0.1em;margin-top:5px;color:rgba(255,255,255,0.15)}
+.plat.live .plat-status{color:var(--green)}
+
+/* ── PRICING — LIGHT ── */
+.pricing-section{background:var(--white);padding:100px 60px;border-top:1px solid var(--border-light)}
+.pricing-inner{max-width:1360px;margin:0 auto}
+.pricing-hl{
+  font-family:var(--display);font-size:clamp(52px,7vw,96px);
+  letter-spacing:0.06em;line-height:0.9;color:var(--black);margin-bottom:64px;
+}
+.pricing-hl span{color:var(--brass3)}
+
+.plans{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border-light)}
+.plan{
+  padding:48px 40px;border-right:1px solid var(--border-light);
+  position:relative;
+  transform:translateY(30px);opacity:0;transition:transform 0.7s ease,opacity 0.7s ease,background 0.2s;
+}
+.plan.visible{transform:translateY(0);opacity:1}
+.plan:nth-child(2){transition-delay:0.15s}
+.plan:nth-child(3){transition-delay:0.3s}
+.plan:last-child{border-right:none}
+.plan:hover{background:var(--off)}
+.plan.featured{background:var(--black);color:var(--white)}
+.plan.featured:hover{background:#111}
+.plan-badge{
+  position:absolute;top:-1px;right:24px;
+  font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;
+  padding:5px 12px;background:var(--brass);color:var(--black);
+}
+.plan-tier{font-family:var(--mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#888;margin-bottom:20px}
+.plan.featured .plan-tier{color:rgba(255,255,255,0.4)}
+.plan-price{font-family:var(--display);font-size:88px;letter-spacing:0.04em;line-height:1;color:var(--black);margin-bottom:4px}
+.plan.featured .plan-price{color:var(--white)}
+.plan-per{font-family:var(--mono);font-size:10px;color:#888;margin-bottom:36px;letter-spacing:0.06em}
+.plan.featured .plan-per{color:rgba(255,255,255,0.3)}
+.plan-list{list-style:none;display:flex;flex-direction:column;gap:13px}
+.plan-list li{font-size:13px;color:#777;display:flex;gap:12px;align-items:flex-start;line-height:1.5}
+.plan.featured .plan-list li{color:rgba(255,255,255,0.5)}
+.chk{width:14px;height:14px;min-width:14px;border:1px solid #ccc;margin-top:2px;flex-shrink:0}
+.plan.featured .chk{border-color:rgba(255,255,255,0.2)}
+
+/* ── CTA — DARK ── */
+.cta-section{
+  background:var(--black);padding:140px 60px;text-align:center;
+  border-top:1px solid var(--border-dark);position:relative;overflow:hidden;
+}
+.cta-glow{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 70% at 50% 100%,rgba(201,168,76,0.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.cta-h2{
+  font-family:var(--display);font-size:clamp(64px,10vw,140px);
+  letter-spacing:0.06em;line-height:0.88;margin-bottom:20px;position:relative;
+}
+.cta-h2 .line-w{display:block;color:var(--white)}
+.cta-h2 .line-g{
+  display:block;
+  background:linear-gradient(135deg,var(--brass),var(--brass2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.cta-sub{font-size:14px;color:rgba(255,255,255,0.4);max-width:380px;margin:0 auto 44px;line-height:1.85;position:relative}
+.cta-form{display:flex;justify-content:center;max-width:440px;margin:0 auto;position:relative}
+.cta-success{display:none;font-family:var(--mono);font-size:11px;color:var(--green);padding:14px 0;letter-spacing:0.08em}
+
+/* ── FOOTER ── */
+footer{
+  padding:32px 60px;border-top:1px solid var(--border-dark);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--black);
+}
+.footer-right{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:0.08em}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.8s ease,transform 0.8s ease}
+.reveal.visible{opacity:1;transform:none}
+.d1{transition-delay:0.1s}.d2{transition-delay:0.2s}.d3{transition-delay:0.3s}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  nav{padding:0 28px}
+  .nav-center{display:none}
+  .hero-content{padding:0 28px 60px}
+  .hero-bottom{grid-template-columns:1fr;gap:32px}
+  .feed-section,.stats-section,.pain-section,.how-section,.plat-section,.pricing-section{padding:72px 28px}
+  .feed-grid,.stats-boxes,.pain-grid,.steps,.plans{grid-template-columns:1fr}
+  .fc,.stat-box,.pain-card,.step,.plan{border-right:none;border-bottom:1px solid var(--border-light)}
+  .plat-row{flex-direction:column}
+  .plat{border-right:none;border-bottom:1px solid var(--border-dark)}
+  .cta-section,footer{padding:72px 28px}
+  footer{flex-direction:column;gap:12px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="ring"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="logo-wrap">
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+      <!-- outer arc -->
+      <path d="M5 24 A14 14 0 0 1 31 24" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <!-- tick marks -->
+      <line x1="18" y1="10.5" x2="18" y2="13" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="9.5" y1="13.5" x2="11.2" y2="15.2" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="26.5" y1="13.5" x2="24.8" y2="15.2" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="6.5" y1="21" x2="9" y2="21" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="27" y1="21" x2="29.5" y2="21" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <!-- needle pointing to ~80% (fast / top right) -->
+      <line x1="18" y1="24" x2="26" y2="13" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- center dot -->
+      <circle cx="18" cy="24" r="2" fill="#c9a84c"/>
+    </svg>
+    <span class="logo-text">CARSNIPE</span>
+  </a>
+  <div class="nav-center">
+    <a href="#how" class="nav-link">How it works</a>
+    <a href="#pricing" class="nav-link">Pricing</a>
+    <a href="#platforms" class="nav-link">Platforms</a>
+  </div>
+  <button class="nav-btn" onclick="document.getElementById('hero-email').focus()">Early access</button>
+</nav>
+
+<!-- CINEMATIC HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="streak"></div>
+  <div class="streak"></div>
+  <div class="streak"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-content">
+    <div class="hero-label"><span class="live-pip"></span>Real-time car deal alerts</div>
+    <h1 class="hero-h1">
+      <span class="l1">SNIPE THE</span>
+      <span class="l2">DEAL FIRST.</span>
+      <span class="l3">EVERY TIME.</span>
+    </h1>
+    <div class="hero-bottom">
+      <p class="hero-desc">
+        CarSnipe monitors <strong>Craigslist, Facebook Marketplace, CarGurus, eBay Motors</strong> and more 24/7. The moment a deal drops below market in your area — you get a text and email. Before anyone else.
+      </p>
+      <div>
+        <form class="hero-form" onsubmit="handleSubmit(event,'hero')">
+          <input class="h-input" type="email" id="hero-email" placeholder="your@email.com" required>
+          <input class="h-input h-zip" type="text" id="hero-zip" placeholder="ZIP" maxlength="5">
+          <button class="h-btn" type="submit">Join waitlist</button>
+        </form>
+        <div class="h-success" id="hero-ok">You're in. We'll reach out at launch.</div>
+        <div class="h-meta">
+          <span><span class="h-count" id="counter">247</span> on the waitlist</span>
+          <span>·</span>
+          <span id="loc-tag">Free to join</span>
+          <span>·</span>
+          <span>No spam</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- LIVE FEED — DARK -->
+<section class="feed-section">
+  <div class="feed-header">
+    <div class="feed-hl"><span class="live-pip"></span>LIVE DEAL FEED</div>
+    <div class="feed-plats">Craigslist · Facebook · CarGurus · eBay Motors · AutoTrader</div>
+  </div>
+  <div class="feed-grid" id="feedGrid">
+    <div class="fc">
+      <div class="fc-top"><div class="fc-src">Craigslist<br><span class="city-tag">your area</span></div><div class="fc-score hot">9.1</div></div>
+      <div class="fc-car">2019 VW GTI SE — DSG, 62k mi</div>
+      <div class="fc-price">Listed $21,500 · KBB $24,700</div>
+      <span class="fc-badge hot">$3,200 below market</span>
+      <div class="fc-time">2 min ago</div>
+    </div>
+    <div class="fc">
+      <div class="fc-top"><div class="fc-src">Facebook<br><span class="city-tag">your area</span></div><div class="fc-score warm">7.4</div></div>
+      <div class="fc-car">2021 Honda Civic Sport — 41k mi</div>
+      <div class="fc-price">Listed $19,900 · KBB $21,700</div>
+      <span class="fc-badge warm">$1,800 below market</span>
+      <div class="fc-time">8 min ago</div>
+    </div>
+    <div class="fc">
+      <div class="fc-top"><div class="fc-src">CarGurus<br><span class="city-tag">your area</span></div><div class="fc-score hot">8.7</div></div>
+      <div class="fc-car">2018 Subaru WRX — 78k mi, clean</div>
+      <div class="fc-price">Listed $19,200 · KBB $21,800</div>
+      <span class="fc-badge hot">$2,600 below market</span>
+      <div class="fc-time">14 min ago</div>
+    </div>
+    <div class="fc">
+      <div class="fc-top"><div class="fc-src">eBay Motors<br><span class="city-tag">your area</span></div><div class="fc-score cold">3.2</div></div>
+      <div class="fc-car">2020 Toyota Camry SE — 54k mi</div>
+      <div class="fc-price">Listed $23,500 · KBB $22,900</div>
+      <span class="fc-badge cold">Overpriced — skip</span>
+      <div class="fc-time">21 min ago</div>
+    </div>
+    <div class="fc">
+      <div class="fc-top"><div class="fc-src">Craigslist<br><span class="city-tag">your area</span></div><div class="fc-score hot">9.4</div></div>
+      <div class="fc-car">2020 BMW 330i xDrive — 48k mi</div>
+      <div class="fc-price">Listed $28,900 · KBB $33,500</div>
+      <span class="fc-badge hot">$4,600 below market</span>
+      <div class="fc-time">31 min ago</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-inner">
+    <span class="tick-item"><span class="tick-sep">◆</span>Stop refreshing Marketplace</span>
+    <span class="tick-item"><span class="tick-sep">◆</span>Get the deal before anyone else</span>
+    <span class="tick-item"><span class="tick-sep">◆</span>AI deal scoring on every listing</span>
+    <span class="tick-item"><span class="tick-sep">◆</span>SMS + email the moment it drops</span>
+    <span class="tick-item"><span class="tick-sep">◆</span>Craigslist · Facebook · CarGurus · eBay · AutoTrader</span>
+    <span class="tick-item"><span class="tick-sep">◆</span>Stop refreshing Marketplace</span>
+    <span class="tick-item"><span class="tick-sep">◆</span>Get the deal before anyone else</span>
+    <span class="tick-item"><span class="tick-sep">◆</span>AI deal scoring on every listing</span>
+    <span class="tick-item"><span class="tick-sep">◆</span>SMS + email the moment it drops</span>
+    <span class="tick-item"><span class="tick-sep">◆</span>Craigslist · Facebook · CarGurus · eBay · AutoTrader</span>
+  </div>
+</div>
+
+<!-- STATS — LIGHT -->
+<section class="stats-section">
+  <div class="stats-inner">
+    <div class="section-tag-light reveal">The numbers</div>
+    <h2 class="stats-hl reveal">WHY THE OLD WAY<br><span>DOESN'T WORK.</span></h2>
+    <div class="stats-boxes">
+      <div class="stat-box">
+        <div class="stat-num" data-target="4" data-suffix="min">4min</div>
+        <div class="stat-label">Average time a real deal lasts on Marketplace before it's gone</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" data-target="50" data-suffix="%">50%</div>
+        <div class="stat-label">Of platform alerts arrive too late — car already sold</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" data-target="6" data-suffix="/10">6/10</div>
+        <div class="stat-label">Listings people contact that are already gone</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PAIN — DARK -->
+<section class="pain-section">
+  <div class="pain-inner">
+    <div class="section-tag-dark reveal">The problem</div>
+    <h2 class="pain-hl reveal">THE CURRENT EXPERIENCE<br><span>IS BROKEN.</span></h2>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-idx">01 — Stale listings</div>
+        <div class="pain-title">IT SOLD 3 DAYS AGO.</div>
+        <div class="pain-body">You message the seller, drive over, it's gone. The listing just never came down. Every platform does this constantly.</div>
+        <div class="pain-quote">"Out of 6 cars I contacted, 4 were already sold — still showing as available."</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-idx">02 — Fake pricing</div>
+        <div class="pain-title">LISTED $19K. DEALER SAYS $38K.</div>
+        <div class="pain-body">Listings are priced to generate clicks, not to sell. By the time you find out the real number you've wasted an afternoon.</div>
+        <div class="pain-quote">"Most dealers aren't transparent. Prices are just bait to get you to reach out."</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-idx">03 — Broken alerts</div>
+        <div class="pain-title">THE ALERT CAME. SIX HOURS LATE.</div>
+        <div class="pain-body">Every platform has search alerts. None work fast enough. Real deals disappear before the notification hits your phone.</div>
+        <div class="pain-quote">"Alerts work maybe 50% of the time. I end up just checking constantly myself."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW — LIGHT -->
+<section class="how-section" id="how">
+  <div class="how-inner">
+    <div class="section-tag-light reveal">How it works</div>
+    <h2 class="how-hl reveal">SET IT UP.<br><span>WE DO THE REST.</span></h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">01 —</div>
+        <div class="step-t">TELL US WHAT YOU WANT</div>
+        <div class="step-b">Make, model, year, max price, ZIP. Set as many searches as you want. Takes under a minute.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">02 —</div>
+        <div class="step-t">WE WATCH EVERYTHING</div>
+        <div class="step-b">Craigslist, Facebook, CarGurus, eBay Motors and more — checked every few minutes, 24/7.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">03 —</div>
+        <div class="step-t">AI SCORES THE DEAL</div>
+        <div class="step-b">Every listing gets scored against live market data. Red flags in descriptions get flagged automatically.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">04 —</div>
+        <div class="step-t">YOU SNIPE IT FIRST</div>
+        <div class="step-b">Text and email the moment it drops. You're first in line before the listing hits anyone else's feed.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORMS — DARK -->
+<section class="plat-section" id="platforms">
+  <div class="plat-inner">
+    <div class="section-tag-dark reveal">Coverage</div>
+    <div class="plat-row reveal">
+      <div class="plat live"><div class="plat-name">Craigslist</div><span class="plat-status">Live</span></div>
+      <div class="plat live"><div class="plat-name">Facebook Marketplace</div><span class="plat-status">Live</span></div>
+      <div class="plat live"><div class="plat-name">CarGurus</div><span class="plat-status">Live</span></div>
+      <div class="plat live"><div class="plat-name">eBay Motors</div><span class="plat-status">Live</span></div>
+      <div class="plat"><div class="plat-name">AutoTrader</div><span class="plat-status">Coming soon</span></div>
+      <div class="plat"><div class="plat-name">Cars.com</div><span class="plat-status">Coming soon</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING — LIGHT -->
+<section class="pricing-section" id="pricing">
+  <div class="pricing-inner">
+    <div class="section-tag-light reveal">Pricing</div>
+    <h2 class="pricing-hl reveal">SIMPLE.<br><span>NO BS.</span></h2>
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-tier">Free — forever</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-per">no card required</div>
+        <ul class="plan-list">
+          <li><span class="chk"></span>1 active search alert</li>
+          <li><span class="chk"></span>Email notifications only</li>
+          <li><span class="chk"></span>Craigslist + CarGurus</li>
+          <li><span class="chk"></span>AI deal score on every listing</li>
+        </ul>
+      </div>
+      <div class="plan">
+        <div class="plan-badge">Popular</div>
+        <div class="plan-tier">Plus</div>
+        <div class="plan-price">$12</div>
+        <div class="plan-per">per month · cancel any time</div>
+        <ul class="plan-list">
+          <li><span class="chk"></span>5 active search alerts</li>
+          <li><span class="chk"></span>Email + SMS notifications</li>
+          <li><span class="chk"></span>All platforms incl. Facebook + eBay</li>
+          <li><span class="chk"></span>AI red flag detection</li>
+          <li><span class="chk"></span>Price history on every listing</li>
+        </ul>
+      </div>
+      <div class="plan featured">
+        <div class="plan-tier">Pro</div>
+        <div class="plan-price">$25</div>
+        <div class="plan-per">per month · cancel any time</div>
+        <ul class="plan-list">
+          <li><span class="chk"></span>Unlimited search alerts</li>
+          <li><span class="chk"></span>Priority SMS + email alerts</li>
+          <li><span class="chk"></span>Every platform we monitor</li>
+          <li><span class="chk"></span>AI red flag + scam detection</li>
+          <li><span class="chk"></span>AI-drafted opening message to sellers</li>
+          <li><span class="chk"></span>Full price history + market trends</li>
+          <li><span class="chk"></span>30 days free for early access members</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA — DARK -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <h2 class="cta-h2 reveal">
+    <span class="line-w">STOP REFRESHING.</span>
+    <span class="line-g">START SNIPING.</span>
+  </h2>
+  <p class="cta-sub reveal">Join the waitlist. Get 30 days of Pro free when we launch.</p>
+  <form class="cta-form reveal" onsubmit="handleSubmit(event,'cta')">
+    <input class="h-input" type="email" id="cta-email" placeholder="your@email.com" required>
+    <button class="h-btn" type="submit">Join waitlist</button>
+  </form>
+  <div class="cta-success" id="cta-ok">You're in. We'll reach out at launch.</div>
+</section>
+
+<footer>
+  <a href="#" class="logo-wrap">
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+      <path d="M5 24 A14 14 0 0 1 31 24" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <line x1="18" y1="10.5" x2="18" y2="13" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="9.5" y1="13.5" x2="11.2" y2="15.2" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="26.5" y1="13.5" x2="24.8" y2="15.2" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="6.5" y1="21" x2="9" y2="21" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="27" y1="21" x2="29.5" y2="21" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="18" y1="24" x2="26" y2="13" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="18" cy="24" r="2" fill="#c9a84c"/>
+    </svg>
+    <span class="logo-text">CARSNIPE</span>
+  </a>
+  <p class="footer-right">© 2025 CarSnipe · Never miss a deal again</p>
+</footer>
+
+<script>
+// Cursor
+const cur=document.getElementById('cur'),ring=document.getElementById('ring');
+document.addEventListener('mousemove',e=>{
+  cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';
+  setTimeout(()=>{ring.style.left=e.clientX+'px';ring.style.top=e.clientY+'px';},60);
+});
+
+// Nav light/dark based on section
+const lightSections=['.stats-section','.how-section','.pricing-section'];
+window.addEventListener('scroll',()=>{
+  const nav=document.getElementById('nav');
+  nav.classList.toggle('scrolled',scrollY>40);
+  let isLight=false;
+  lightSections.forEach(sel=>{
+    const el=document.querySelector(sel);
+    if(!el)return;
+    const r=el.getBoundingClientRect();
+    if(r.top<=72&&r.bottom>72)isLight=true;
+  });
+  nav.classList.toggle('light-nav',isLight);
+});
+
+// Scroll reveal
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:0.08});
+document.querySelectorAll('.reveal,.stat-box,.pain-card,.step,.plan').forEach(el=>obs.observe(el));
+
+// Counter
+let count=247;
+setInterval(()=>{
+  if(Math.random()>0.65){count+=Math.floor(Math.random()*2)+1;document.getElementById('counter').textContent=count;}
+},5000);
+
+// Form submit
+async function handleSubmit(e,id){
+  e.preventDefault();
+  const email=document.getElementById(id==='hero'?'hero-email':'cta-email').value;
+  const zip=document.getElementById('hero-zip')?.value||'';
+  try{await fetch('/api/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,zip})});}catch(err){}
+  e.target.style.display='none';
+  document.getElementById(id+'-ok').style.display='block';
+  count++;document.getElementById('counter').textContent=count;
+}
+
+// Geolocation
+let city='your area';
+if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`)
+      .then(r=>r.json()).then(d=>{
+        city=d.address.city||d.address.town||d.address.county||'your area';
+        const zip=d.address.postcode||'';
+        document.querySelectorAll('.city-tag').forEach(el=>el.textContent=city);
+        const lt=document.getElementById('loc-tag');
+        if(lt)lt.textContent='Deals near '+city;
+        const zi=document.getElementById('hero-zip');
+        if(zi&&!zi.value&&zip)zi.value=zip;
+      }).catch(()=>{});
+  },()=>{});
+}
+document.getElementById('hero-zip').addEventListener('input',function(){
+  if(this.value.length===5){
+    fetch(`https://nominatim.openstreetmap.org/search?postalcode=${this.value}&country=US&format=json&limit=1`)
+      .then(r=>r.json()).then(d=>{
+        if(d[0]){city=d[0].display_name.split(',')[0];document.querySelectorAll('.city-tag').forEach(el=>el.textContent=city);const lt=document.getElementById('loc-tag');if(lt)lt.textContent='Deals near '+city;}
+      }).catch(()=>{});
+  }
+});
+
+// Live feed
+const plats=['Craigslist','Facebook','CarGurus','eBay Motors','AutoTrader'];
+const times=['just now','1 min ago','3 min ago','7 min ago','12 min ago'];
+const deals=[
+  {car:'2019 VW GTI SE — DSG, 62k mi',price:'Listed $21,500 · KBB $24,700',badge:'$3,200 below market',score:'9.1',cls:'hot'},
+  {car:'2021 Honda Civic Sport — 41k mi',price:'Listed $19,900 · KBB $21,700',badge:'$1,800 below market',score:'7.4',cls:'warm'},
+  {car:'2018 Subaru WRX — 78k mi',price:'Listed $19,200 · KBB $21,800',badge:'$2,600 below market',score:'8.7',cls:'hot'},
+  {car:'2020 Toyota Camry SE — 54k mi',price:'Listed $23,500 · KBB $22,900',badge:'Overpriced — skip',score:'3.2',cls:'cold'},
+  {car:'2020 BMW 330i xDrive — 48k mi',price:'Listed $28,900 · KBB $33,500',badge:'$4,600 below market',score:'9.4',cls:'hot'},
+  {car:'2017 Ford Focus ST — 55k mi',price:'Listed $16,800 · KBB $19,200',badge:'$2,400 below market',score:'8.3',cls:'hot'},
+  {car:'2021 Kia Stinger GT2 — 29k mi',price:'Listed $31,000 · KBB $36,200',badge:'$5,200 below market',score:'9.6',cls:'hot'},
+  {car:'2018 Audi A4 Premium — 67k mi',price:'Listed $22,000 · KBB $25,400',badge:'$3,400 below market',score:'8.8',cls:'hot'},
+  {car:'2019 Mazda MX-5 Miata — 38k mi',price:'Listed $24,200 · KBB $26,500',badge:'$2,300 below market',score:'8.6',cls:'hot'},
+  {car:'2019 Ford Mustang GT — 44k mi',price:'Listed $26,500 · KBB $29,200',badge:'$2,700 below market',score:'8.1',cls:'hot'},
+  {car:'2016 Subaru BRZ — 61k mi',price:'Listed $17,500 · KBB $19,800',badge:'$2,300 below market',score:'8.2',cls:'hot'},
+  {car:'2022 Hyundai Elantra N — 19k mi',price:'Listed $25,500 · KBB $27,800',badge:'$2,300 below market',score:'8.5',cls:'hot'},
+  {car:'2020 VW Jetta GLI — 44k mi',price:'Listed $20,800 · KBB $23,100',badge:'$2,300 below market',score:'8.4',cls:'hot'},
+  {car:'2019 Toyota GR86 — 33k mi',price:'Listed $22,500 · KBB $25,100',badge:'$2,600 below market',score:'8.9',cls:'hot'},
+  {car:'2021 Chevrolet Corvette — 9k mi',price:'Listed $59,900 · KBB $64,500',badge:'$4,600 below market',score:'9.2',cls:'hot'},
+  {car:'2017 Mercedes C300 — 82k mi',price:'Listed $21,000 · KBB $23,800',badge:'$2,800 below market',score:'7.5',cls:'warm'},
+  {car:'2023 Honda CR-V Hybrid — 12k mi',price:'Listed $36,500 · KBB $35,900',badge:'Overpriced — skip',score:'2.8',cls:'cold'},
+  {car:'2020 Nissan 370Z Sport — 38k mi',price:'Listed $24,800 · KBB $27,500',badge:'$2,700 below market',score:'8.0',cls:'hot'},
+];
+const shuffled=deals.sort(()=>Math.random()-0.5);
+let idx=0;
+setInterval(()=>{
+  const grid=document.getElementById('feedGrid');
+  const d=shuffled[idx%shuffled.length];idx++;
+  const p=plats[Math.floor(Math.random()*plats.length)];
+  const t=times[Math.floor(Math.random()*3)];
+  const card=document.createElement('div');
+  card.className='fc new-in';
+  card.innerHTML=`
+    <div class="fc-top">
+      <div class="fc-src">${p}<br><span class="city-tag">${city}</span></div>
+      <div class="fc-score ${d.cls}">${d.score}</div>
+    </div>
+    <div class="fc-car">${d.car}</div>
+    <div class="fc-price">${d.price}</div>
+    <span class="fc-badge ${d.cls}">${d.badge}</span>
+    <div class="fc-time">${t}</div>`;
+  grid.insertBefore(card,grid.firstChild);
+  if(grid.children.length>10)grid.removeChild(grid.lastChild);
+},5000);
+</script>
+</body>
+</html>
